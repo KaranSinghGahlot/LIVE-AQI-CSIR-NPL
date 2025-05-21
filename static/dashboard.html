@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Air Quality Monitoring Dashboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <!-- Header -->
+  <header class="bg-white shadow p-4 mb-6">
+    <h1 class="text-2xl font-bold text-blue-600 text-center">📡 Air Quality Monitoring Dashboard</h1>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 space-y-6">
+
+    <!-- Date & Duration Selector -->
+    <section aria-labelledby="filter-section" class="bg-white rounded-xl shadow p-6">
+      <h2 id="filter-section" class="text-xl font-semibold mb-4">Filter & Aggregation</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex flex-col">
+          <label for="startDate" class="mb-1 font-medium">Start Date & Time</label>
+          <input id="startDate" type="datetime-local" class="border rounded p-2" />
+        </div>
+        <div class="flex flex-col">
+          <label for="endDate" class="mb-1 font-medium">End Date & Time</label>
+          <input id="endDate" type="datetime-local" class="border rounded p-2" />
+        </div>
+        <div class="flex flex-col">
+          <label for="interval" class="mb-1 font-medium">Aggregation Interval</label>
+          <select id="interval" class="border rounded p-2">
+            <option value="raw">Raw</option>
+            <option value="minutely">Minutely</option>
+            <option value="hourly">Hourly</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-4">
+        <button id="applyFilter" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Apply</button>
+      </div>
+    </section>
+
+    <!-- Visualization Pane -->
+    <section aria-labelledby="viz-section" class="bg-white rounded-xl shadow p-6">
+      <h2 id="viz-section" class="text-xl font-semibold mb-4">Visualization</h2>
+      <div class="flex items-center space-x-4 mb-4">
+        <label><input type="checkbox" class="mr-2" id="toggleNOX" checked /> NOx</label>
+        <label><input type="checkbox" class="mr-2" id="toggleNO" checked /> NO</label>
+        <label><input type="checkbox" class="mr-2" id="toggleNO2" checked /> NO₂</label>
+      </div>
+      <!-- Chart placeholder -->
+      <div id="chart-area" class="h-96 bg-gray-50 rounded"></div>
+    </section>
+
+    <!-- Live Reading Section -->
+    <section aria-labelledby="live-section" class="bg-white rounded-xl shadow p-6">
+      <h2 id="live-section" class="text-xl font-semibold mb-4">Live Readings</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl shadow p-4 text-center">
+          <p class="font-medium">NOx</p>
+          <p id="liveNOX" class="text-3xl font-bold">–</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4 text-center">
+          <p class="font-medium">NO</p>
+          <p id="liveNO" class="text-3xl font-bold">–</p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4 text-center">
+          <p class="font-medium">NO₂</p>
+          <p id="liveNO2" class="text-3xl font-bold">–</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mean/Max/Min Section -->
+    <section aria-labelledby="stats-section" class="bg-white rounded-xl shadow p-6">
+      <h2 id="stats-section" class="text-xl font-semibold mb-4">Statistics (Mean / Max / Min)</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl shadow p-4">
+          <p class="font-medium mb-2">NOx</p>
+          <p>Mean: <span id="meanNOX">–</span></p>
+          <p>Max: <span id="maxNOX">–</span></p>
+          <p>Min: <span id="minNOX">–</span></p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4">
+          <p class="font-medium mb-2">NO</p>
+          <p>Mean: <span id="meanNO">–</span></p>
+          <p>Max: <span id="maxNO">–</span></p>
+          <p>Min: <span id="minNO">–</span></p>
+        </div>
+        <div class="bg-white rounded-xl shadow p-4">
+          <p class="font-medium mb-2">NO₂</p>
+          <p>Mean: <span id="meanNO2">–</span></p>
+          <p>Max: <span id="maxNO2">–</span></p>
+          <p>Min: <span id="minNO2">–</span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12hr / 24hr Averages Table -->
+    <section aria-labelledby="avg-section" class="bg-white rounded-xl shadow p-6">
+      <h2 id="avg-section" class="text-xl font-semibold mb-4">12hr / 24hr Averages</h2>
+      <div class="mb-4 flex items-center space-x-4">
+        <label><input type="checkbox" class="mr-2" id="filterAvgNOX" checked /> NOx</label>
+        <label><input type="checkbox" class="mr-2" id="filterAvgNO" checked /> NO</label>
+        <label><input type="checkbox" class="mr-2" id="filterAvgNO2" checked /> NO₂</label>
+      </div>
+      <div class="overflow-auto max-h-64">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="p-2">Date</th>
+              <th class="p-2">Gas</th>
+              <th class="p-2">12hr Avg</th>
+              <th class="p-2">24hr Avg</th>
+            </tr>
+          </thead>
+          <tbody id="avgTable">
+            <!-- JS will populate rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Raw Data Table -->
+    <section aria-labelledby="raw-section" class="bg-white rounded-xl shadow p-6">
+      <h2 id="raw-section" class="text-xl font-semibold mb-4">Raw Data</h2>
+      <details>
+        <summary class="cursor-pointer font-medium">Show/Hide Raw Data</summary>
+        <div class="overflow-auto max-h-64 mt-2">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="p-2">Timestamp</th>
+                <th class="p-2">NOx</th>
+                <th class="p-2">NO</th>
+                <th class="p-2">NO₂</th>
+              </tr>
+            </thead>
+            <tbody id="rawTable">
+              <!-- JS will populate rows -->
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+  </main>
+
+  <!-- JavaScript -->
+  <script>
+    const API_ENDPOINT = '/latest'; // Replace with your data endpoint
+
+    // Fetch and render live readings
+    async function loadLive() {
+      try {
+        const res = await fetch(API_ENDPOINT);
+        const data = await res.json();
+        document.getElementById('liveNOX').textContent = data.NOX ?? '–';
+        document.getElementById('liveNO').textContent = data.NO ?? '–';
+        document.getElementById('liveNO2').textContent = data.NO2 ?? '–';
+      } catch (e) {
+        console.error('Error fetching live data', e);
+      }
+    }
+
+    // Placeholder: Fetch full dataset based on filters
+    async function loadData() {
+      // Implement data fetch with startDate, endDate, interval
+      // Then populate Visualization, Stats, Averages, Raw tables
+    }
+
+    // Event listeners
+    document.getElementById('applyFilter').addEventListener('click', loadData);
+
+    // Toggles for chart series and averages table filters
+    ['NOX', 'NO', 'NO2'].forEach(gas => {
+      document.getElementById(`toggle${gas}`).addEventListener('change', () => {
+        // Toggle chart series
+      });
+      document.getElementById(`filterAvg${gas}`).addEventListener('change', () => {
+        // Filter avg table rows
+      });
+    });
+
+    // Initial load
+    loadLive();
+    setInterval(loadLive, 60000); // refresh live readings every 60s
+  </script>
+</body>
+</html>

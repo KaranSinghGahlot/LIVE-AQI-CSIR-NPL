@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real-Time AQI Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/553/553416.png" />
+  <style>
+    .label {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: #4b5563;
+    }
+    .value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #111827;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-800 font-sans">
+  <div class="max-w-7xl mx-auto p-6">
+    <header class="mb-6 flex items-center space-x-3">
+      <img src="https://cdn-icons-png.flaticon.com/512/553/553416.png" class="w-8 h-8" alt="icon" />
+      <h1 class="text-3xl font-extrabold">Real-Time Air Quality Dashboard</h1>
+    </header>
+
+    <section class="mb-4">
+      <h2 class="text-xl font-semibold text-green-600 mb-2">🟢 Latest Sensor Values</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div>
+          <p class="label">Time</p>
+          <p id="time" class="value">--</p>
+        </div>
+        <div>
+          <p class="label">NOx Conc</p>
+          <p id="nox" class="value">--</p>
+        </div>
+        <div>
+          <p class="label">NO2 Conc</p>
+          <p id="no2" class="value">--</p>
+        </div>
+        <div>
+          <p class="label">NO Conc</p>
+          <p id="no" class="value">--</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    async function fetchData() {
+      try {
+        const res = await fetch("/latest"); // Replace with your actual backend API endpoint
+        const data = await res.json();
+
+        document.getElementById("time").textContent = data.time || "N/A";
+        document.getElementById("nox").textContent = data.NOX || "N/A";
+        document.getElementById("no2").textContent = data.NO2 || "N/A";
+        document.getElementById("no").textContent = data.NO || "N/A";
+      } catch (err) {
+        console.error("Error fetching real-time data:", err);
+      }
+    }
+
+    // Initial load
+    fetchData();
+
+    // Refresh every 60 seconds
+    setInterval(fetchData, 60000);
+  </script>
+</body>
+</html>
