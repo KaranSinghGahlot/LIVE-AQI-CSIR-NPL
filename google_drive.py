@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 import io
 
-# Set up credentials using Streamlit secrets
+# Set up credentials from secrets
 creds = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"],
     scopes=["https://www.googleapis.com/auth/drive.readonly"]
@@ -13,11 +13,9 @@ creds = service_account.Credentials.from_service_account_info(
 
 def fetch_latest_csv():
     folder_id = st.secrets["gcp_service_account"]["folder_id"]
-
-    # Build the Drive service
     service = build("drive", "v3", credentials=creds)
 
-    # List CSV files in the folder, sorted by last modified time
+    # Find the most recently modified CSV file
     query = f"'{folder_id}' in parents and mimeType='text/csv'"
     results = service.files().list(
         q=query,
@@ -26,21 +24,19 @@ def fetch_latest_csv():
         fields="files(id, name, modifiedTime)"
     ).execute()
 
-    items = results.get("files", [])
-    if not items:
+    files = results.get("files", [])
+    if not files:
         raise FileNotFoundError("No CSV files found in the folder.")
 
-    latest_file_id = items[0]["id"]
-    file_name = items[0]["name"]
-
-    # Download the file
-    request = service.files().get_media(fileId=latest_file_id)
+    file_id = files[0]["id"]
+    request = service.files().get_media(fileId=file_id)
     fh = io.BytesIO()
     downloader = MediaIoBaseDownload(fh, request)
+
     done = False
     while not done:
         status, done = downloader.next_chunk()
-    fh.seek(0)
 
+    fh.seek(0)
     df = pd.read_csv(fh)
     return df
